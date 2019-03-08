@@ -47,7 +47,7 @@ flags.DEFINE_string('checkpoint_dir', None, 'Directory of model checkpoints.')
 flags.DEFINE_integer('vis_batch_size', 1,
                      'The number of images in each batch during evaluation.')
 
-flags.DEFINE_multi_integer('vis_crop_size', [513, 513],
+flags.DEFINE_multi_integer('vis_crop_size', [4071, 4071],
                            'Crop size [height, width] for visualization.')
 
 flags.DEFINE_integer('eval_interval_secs', 60 * 5,
@@ -89,6 +89,14 @@ flags.DEFINE_boolean('also_save_raw_predictions', False,
 flags.DEFINE_integer('max_number_of_iterations', 0,
                      'Maximum number of visualization iterations. Will loop '
                      'indefinitely upon nonpositive values.')
+
+flags.DEFINE_boolean('custom_dataset', None, "Is the dataset custom")
+flags.DEFINE_integer('train_size', 10, "Size of the train dataset")
+flags.DEFINE_integer('test_size', 10, "Size of the test dataset")
+flags.DEFINE_integer('eval_size', 0, "Size of the eval dataset")
+flags.DEFINE_integer('ignore_label', 255, "Ignore label INT")
+flags.DEFINE_integer('num_classes', 2, "Number of classes")
+
 
 # The folder where semantic segmentation predictions are saved.
 _SEMANTIC_PREDICTION_SAVE_FOLDER = 'segmentation_results'
@@ -187,8 +195,20 @@ def _process_batch(sess, original_images, semantic_predictions, image_names,
 def main(unused_argv):
   tf.logging.set_verbosity(tf.logging.INFO)
   # Get dataset-dependent information.
+  custom_dataset = None
+  if FLAGS.custom_dataset:
+      custom_dataset = segmentation_dataset.DatasetDescriptor(
+          splits_to_sizes={
+              'train': FLAGS.train_size,
+              'test': FLAGS.test_size,
+              'eval': FLAGS.eval_size,
+          },
+          num_classes=FLAGS.num_classes,
+          ignore_label=FLAGS.ignore_label,
+      )
   dataset = segmentation_dataset.get_dataset(
-      FLAGS.dataset, FLAGS.vis_split, dataset_dir=FLAGS.dataset_dir)
+      FLAGS.dataset, FLAGS.vis_split, dataset_dir=FLAGS.dataset_dir, custom_dataset=custom_dataset)
+
   train_id_to_eval_id = None
   if dataset.name == segmentation_dataset.get_cityscapes_dataset_name():
     tf.logging.info('Cityscapes requires converting train_id to eval_id.')
@@ -247,6 +267,7 @@ def main(unused_argv):
       # we reisze the predictions back.
       original_image = tf.squeeze(samples[common.ORIGINAL_IMAGE])
       original_image_shape = tf.shape(original_image)
+      
       predictions = tf.slice(
           predictions,
           [0, 0, 0],

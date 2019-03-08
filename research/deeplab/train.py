@@ -78,19 +78,19 @@ flags.DEFINE_enum('learning_policy', 'poly', ['poly', 'step'],
 
 # Use 0.007 when training on PASCAL augmented training set, train_aug. When
 # fine-tuning on PASCAL trainval set, use learning rate=0.0001.
-flags.DEFINE_float('base_learning_rate', .0001,
+flags.DEFINE_float('base_learning_rate', .001,
                    'The base learning rate for model training.')
 
 flags.DEFINE_float('learning_rate_decay_factor', 0.1,
                    'The rate to decay the base learning rate.')
 
-flags.DEFINE_integer('learning_rate_decay_step', 2000,
+flags.DEFINE_integer('learning_rate_decay_step', 50000,
                      'Decay the base learning rate at a fixed step.')
 
 flags.DEFINE_float('learning_power', 0.9,
                    'The power value used in the poly learning policy.')
 
-flags.DEFINE_integer('training_number_of_steps', 30000,
+flags.DEFINE_integer('training_number_of_steps', 150000,
                      'The number of steps used for training')
 
 flags.DEFINE_float('momentum', 0.9, 'The momentum value to use')
@@ -170,7 +170,7 @@ flags.DEFINE_boolean('custom_dataset', None, "Is the dataset custom")
 flags.DEFINE_integer('train_size', 0, "Size of the train dataset")
 flags.DEFINE_integer('test_size', 0, "Size of the test dataset")
 flags.DEFINE_integer('eval_size', 0, "Size of the eval dataset")
-flags.DEFINE_integer('ignore_label', 0, "Ignore label INT")
+flags.DEFINE_integer('ignore_label', 255, "Ignore label INT")
 flags.DEFINE_integer('num_classes', 0, "Number of classes")
 
 
@@ -255,7 +255,7 @@ def main(unused_argv):
             splits_to_sizes={
                 'train': FLAGS.train_size,
                 'test': FLAGS.test_size,
-                'evat': FLAGS.eval_size,
+                'eval': FLAGS.eval_size,
             },
             num_classes=FLAGS.num_classes,
             ignore_label=FLAGS.ignore_label,
